@@ -31,14 +31,14 @@ class ViewController: UIViewController {
         
         // Operator
         let operatorDemo = Operator()
+        ObservableDemo.shared.run()
         
         button.rx.tap
-            .subscribe(onNext: {
+            .subscribe(onNext: { [weak self] in
                 operatorDemo.run()
             })
             .disposed(by: disposeBag)
     }
-    
     
     func targetAction() {
         //button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
@@ -140,3 +140,53 @@ class ViewController: UIViewController {
 
 }
 
+/* Rx Demo
+ private func showMessage(_ type: SearchMessage) {
+     let rect = CGRect(origin: CGPoint(x: 0,y :0), size: CGSize(width: self.view.bounds.size.width, height: self.view.bounds.size.height))
+     let emptyMessageLabel = UILabel(frame: rect)
+
+     switch type {
+
+     case .initial:
+         emptyMessageLabel.text = "Try searching bla bla"
+
+     case .noResult:
+         emptyMessageLabel.text = "No results found.\nTry searching again"
+     }
+
+     tableView.backgroundView = emptyMessageLabel;
+ }
+var searchText = PublishSubject<String>()
+
+private func getData() -> Driver<[Item]> {
+    return self.searchText
+        .filter({ (query) -> Bool in
+            return query.count > 0
+        })
+        .asObservable()
+        .throttle(0.2, scheduler: MainScheduler.instance)
+        .distinctUntilChanged()
+        .flatMapLatest(searchAPI)
+        .asDriver(onErrorJustReturn: [])
+
+}
+ private func setupBindings() {
+     viewModel.data
+        .do(onNext: { [weak self] items in
+             guard let self = self else { return }
+             self.tableView.backgroundView = nil
+             if items.count == 0 {
+                self.showMessage(.noResult)
+             }
+         })
+         .drive(tableView.rx.items(cellIdentifier: "SearchResultCell", cellType: SearchResultCell.self)) { row, item, cell in
+             cell.label.text = item.title
+             do {
+                 try _ = cell.imageView.kf.rx.setImage(with: item.imageUrl.asURL()).subscribe()
+             } catch(let error) {
+                 cell.imageView.image = UIImage.init(named: "DefaultImage")
+             }
+         }
+         .disposed(by: disposeBag)
+ }
+ */

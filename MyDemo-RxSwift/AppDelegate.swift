@@ -16,6 +16,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        
+        let array = [0,1,2,0,1,2,0,2,2,1]
+        print("before: \(array)")
+        let sortedArray = Algorithm().sort(array: array)
+        print("after: \(sortedArray)")
+        
+        print("Fibonacci Iterator: \(Algorithm().iterator(30))")
+        print("Fibonacci Recursive: \(Algorithm().fibonacci(30))")
+        print("Hanno Towers Recursive:")
+        Algorithm().hanioTowers(total: 5, a: "A", b: "B", c: "C")
+        
+        
         return true
     }
 

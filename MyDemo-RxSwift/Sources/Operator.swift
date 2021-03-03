@@ -14,10 +14,13 @@ public class Operator {
     let disposeBag = DisposeBag()
     
     func run() {
-        amb()
-        catchError()
-        merge_combineLatest_zip()
-        concat()
+//        amb()
+//        catchError()
+//        merge_combineLatest_zip()
+//        concat()
+        create()
+        flatMap()
+        take()
     }
     
     func amb() {
@@ -116,6 +119,75 @@ public class Operator {
         subject2.onNext("🐱")
         subject1.onCompleted()
         subject2.onNext("🐭")
+    }
+    
+    // just 操作符将某一个元素转换为 Observable，仅有一个序列元素，类似于用 create 创建了一个 onNext(0) OnCompleted()
+    func create() {
+        let id = Observable<Int>.create { observer in
+            observer.onNext(0)
+            observer.onNext(1)
+            observer.onNext(2)
+            observer.onCompleted()
+            return Disposables.create()
+        }
+        id.materialize() // materialize 实现：将 Observable 产生的这些事件全部转换成元素，然后发送出来 next(next(0))
+            .do(onNext: { e in print("doBefore: \(e)") }, afterNext: { e in print("after: \(e)") })
+            .subscribe { print($0) } // next(0))
+            .disposed(by: disposeBag)
+        id.asDriver(onErrorJustReturn: 0).drive(onNext: { e in print(e) }).disposed(by: disposeBag)
+    }
+    
+    func flatMap() {
+        let first = BehaviorSubject(value: "👦🏻")
+        let second = BehaviorSubject(value: "🅰️")
+        let variable = BehaviorRelay.init(value: first) //PublishRelay
+        
+
+        variable
+//            .asObservable()
+            .map { try $0.value() } // 通过一个转换函数，将 Observable 的每个元素转换一遍
+//                .flatMap { $0 } // 将 Observable 的元素转换成其他的 Observable，然后将这些 Observables 合并之后再发送出来
+//                .flatMapLatest { $0 }
+            .subscribe(onNext: { element in
+                print(element)
+//                print("\(try! (element as BehaviorSubject<String>).value())")
+            })
+            .disposed(by: disposeBag)
+
+        first.onNext("🐱")
+        variable.accept(second)
+        second.onNext("🅱️")
+        first.onNext("🐶")
+    }
+    
+    // 只取出前 n 个元素发送 takeLast
+    func take() {
+        Observable.of("🐱", "🐰", "🐶", "🐸", "🐷", "🐵")
+        .take(3)
+        .subscribe(onNext: { print($0) })
+        .disposed(by: disposeBag)
+    }
+    
+    // 忽略掉在第二个 Observable 产生事件后发出的那部分元素
+    // takeWhile 镜像一个 Observable 直到某个元素的判定为 false
+    func takeUntil() {
+        let sourceSequence = PublishSubject<String>()
+        let referenceSequence = PublishSubject<String>()
+
+        sourceSequence
+            .takeUntil(referenceSequence) // .takeWhile { $0 < 4 }
+            .subscribe { print($0) }
+            .disposed(by: disposeBag)
+
+        sourceSequence.onNext("🐱")
+        sourceSequence.onNext("🐰")
+        sourceSequence.onNext("🐶")
+
+        referenceSequence.onNext("🔴")
+
+        sourceSequence.onNext("🐸")
+        sourceSequence.onNext("🐷")
+        sourceSequence.onNext("🐵")
     }
     
 }
